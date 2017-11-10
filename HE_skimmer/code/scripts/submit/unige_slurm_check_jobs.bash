@@ -17,10 +17,10 @@ echo "Number of submitted jobs: ${n_submitted}"
 echo "Number of running jobs: ${n_running}"
 echo ""
 
-qstat -u ${user} | head -n5
-qstat -u ${user} | grep ${queue} | grep job_${skim_version} | grep R | head -n20 | grep -v Req
+squeue -u ${user} | head -n1			# Shows header
+squeue -u ${user} | grep ${queue} | grep job_${skim_version} | grep R | grep -v PD | head -n20 	# Shows running jobs
 echo "-------------------- -------- -------- ---------------- ------ ----- --- ------ ----- - -----"
-qstat -u ${user} | grep ${queue} | grep job_${skim_version} | grep -v R | grep -v C | head -n20 | grep -v Req
+squeue -u ${user} | grep ${queue} | grep job_${skim_version} | grep -v R | grep -v C | head -n20 		# Shows queued jobs
 
 echo ${n_submitted} > ../../../tmp
 
