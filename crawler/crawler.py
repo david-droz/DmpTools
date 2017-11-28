@@ -123,7 +123,7 @@ def main(infile, debug=False):
     def testPdgId(fname):
         global error_code
         if debug: print 'testing for PDG id'
-        bn = basename(fname).split(".")[0].split("-")[0]
+        bn = basename(fname).split(".")[0].split("-")[0].split("_")[0]
         if (not bn.startswith("all")) or (("bkg" or "background" or "back") in bn.lower()):
             return True
         else:
