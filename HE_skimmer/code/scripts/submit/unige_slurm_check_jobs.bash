@@ -18,7 +18,7 @@ echo "Number of running jobs: ${n_running}"
 echo ""
 
 squeue -u ${user} | head -n1													# Shows header
-squeue -u ${user} -p ${queue} -t R  | grep job_${skim_version} | head -n20 		# Shows running jobs
+squeue -u ${user} -p ${queue} -t R | grep job_${skim_version} | head -n20 		# Shows running jobs
 echo "-------------------- -------- -------- ---------------- ------ ----- --- ------ ----- - -----"
 squeue -u ${user} -p ${queue} -t PD | grep job_${skim_version} | head -n20 		# Shows queued jobs
 
