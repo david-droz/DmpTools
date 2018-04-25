@@ -1,3 +1,5 @@
+DMPSWRELEASE  = DmpSoftware-6-0-0
+DMPSWPATH = /cvmfs/dampe.cern.ch/centos7/opt/DMPSW/
 # Root variables
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLIBS     := $(shell root-config --libs) 

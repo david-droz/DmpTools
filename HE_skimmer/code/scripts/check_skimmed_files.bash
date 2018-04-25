@@ -1,5 +1,6 @@
 #!/bin/bash
-
+delete=${1:-no}
+echo ${delete}
 printf "\n>>>> Execute check_files.bash \n\n"
 
 data_location="`cat ../../parameters.txt | grep 2A_data_location | awk '{print $2}'`"
@@ -21,6 +22,7 @@ echo "cd ${release_path}/${release_name}/"
 cd ${release_path}/${release_name}/
 echo "source bin/thisdmpsw.sh"
 source bin/thisdmpsw.sh
+#source thisdmpeventclass.sh
 cd - >& /dev/null
 
 workdir="`pwd`"
@@ -42,6 +44,7 @@ do
 	    printf "Checking ${output_location}/${year}/${month}/${day}...\n"
 
 	    erange="002_010 010_025 025_050 050_100 100_500 500_000 photon"
+            # erange="002_010 010_025 025_050 050_100 100_500 500_000 photon photon2"
 
 	    for e in ${erange}
 	    do
@@ -57,6 +60,19 @@ do
 		else
 		    printf "Check ${f}... "
 		    root -l -b -q "${workdir}/read_local_file.C(\"${f}\")" >& tmp
+		    RC=$?
+ 		    if [[ $RC != 0 ]];
+		    then
+ 		     echo "ERROR!!! could not read local file. skip."
+                     cat tmp
+		     if [[ $delete == 'delete' ]];
+		     then
+                      echo "REQUESTED DELETION OF FILE!, YOU CAN INTERRUPT THIS BY PRESSING CTRL+C DURING THE NEXT 5 SECONDS"
+		      sleep 5
+		      rm -v ${f}
+		     fi
+                     continue
+                    fi
                     #cat tmp
 		    n=`cat tmp | grep nentries | awk '{print $3}'`
 		    if [ "${n}" = "" ]

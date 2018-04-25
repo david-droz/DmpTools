@@ -35,7 +35,7 @@ spin[1]="\\"
 spin[2]="|"
 spin[3]="/"
 
-rm -f code/scripts/submit/job_*bash*
+rm -f code/scripts/submit/submit_dir/job_*bash*
 
 pushd code
 if [ "${todo}" != "kill" ]; then ./build.bash; fi
@@ -44,7 +44,8 @@ pushd submit
 rm -f job_*.bash
 if [ "${todo}" = "kill" ]; then 
     ./${system_type}_kill_jobs.bash; 
-    rm -f ../../../tmp
+    #rm -f ../../../tmp
+    rm -rfv ${SKIMROOT}/code/scripts/submit/submit_dir/*
     exit
 fi
 popd
@@ -60,11 +61,13 @@ do
     pushd code
     pushd scripts
     if [ "${todo}" != "kill" ]; then ./get_file_lists.bash; fi
+    echo $(date)
     ./check_files.bash
     pushd submit
     if [ "${todo}" = "run" ]; then ./submit.bash submit; elif [ "${todo}" != "kill" ]; then ./submit.bash; fi
     ./${system_type}_check_jobs.bash
     popd
+    echo $(date)
     ./get_summary.bash
     popd
     popd
@@ -87,7 +90,7 @@ do
     echo "You are viewing hohup.out, press Ctr+C to stop..."
     
     n=0
-    delay=30 # seconds
+    delay=300 # seconds
     nmax=$(( 10*${delay} ))
     while [ ${n} -lt ${nmax} ]
     do
@@ -101,7 +104,7 @@ do
 
 done
 
-cd code/scripts/submit
+cd code/scripts/submit/submit_dir
 rm -f job_*.bash*
 cd - > /dev/null
 

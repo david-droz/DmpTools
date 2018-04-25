@@ -12,8 +12,8 @@ day_start="`cat ../../parameters.txt | grep day_start | awk '{print $2}'`"
 day_end="`cat ../../parameters.txt | grep day_end | awk '{print $2}'`"
 system_type="`cat ../../parameters.txt | grep system_type | awk '{print $2}'`"
 max_files="`cat ../../parameters.txt | grep max_files | awk '{print $2}'`"
-files_lo=$((${max_files}-10))
-files_hi=$((${max_files}+10))
+files_lo=$((${max_files}-20))
+files_hi=$((${max_files}+20))
 
 source setup-externals_${system_type}.sh
 
@@ -24,6 +24,7 @@ echo "cd ${release_path}/${release_name}/"
 cd ${release_path}/${release_name}/
 echo "source bin/thisdmpsw.sh"
 source bin/thisdmpsw.sh
+#source thisdmpeventclass.sh
 cd - >& /dev/null
 
 workdir="`pwd`"
@@ -103,7 +104,7 @@ do
 	    fi
 
 	    erange="002_010 010_025 025_050 050_100 100_500 500_000 photon"
-
+            #erange="002_010 010_025 025_050 050_100 100_500 500_000 photon photon2"
 	    for e in ${erange}
 	    do
 		f="${day}_data_${e}.root"
