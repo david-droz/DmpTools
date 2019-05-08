@@ -12,11 +12,26 @@ SLURM_PARTITION="mono-shared"
 
 def mkdir(pwd):
     system("mkdir -p {p}".format(p=pwd))
+    
+def centosDetect():
+    '''
+    Baobab specific: detect if running on CentOS6 or CentOS7
+    '''
+    if not isfile('/etc/centos-release'):
+        print '*** WARNING: Cannot detect CentOS release file. Continuing with CentOS6'
+        return 'rhel6-64'
+    with open('/etc/centos-release','r') as f:
+        releaseString = f.readline()
+    if 'release 6.' in releaseString: return 'rhel6-64'
+    elif 'release 7.' in releaseString: return 'centos7'
+    else:
+        print '*** WARNING: Cannot identify CentOS release. Continuing with CentOS6'
+        return 'rhel6-64'
 
 def mc2reco(fi,version="v5r4p0",newpath=""):
     """ converts allGamma-vXrYpZ_100GeV_10TeV-p2.noOrb.740485.mc.root to allGamma-v5r4p0_100GeV_10TeV-p2.noOrb.740485.reco.root"""
     #print '*** DEBUG: file: ',fi
-    vtag = research("v\dr\dp\d",fi)
+    vtag = research("v\dr\dp\d{1,2}[a-z]",fi)
     if vtag is None:
         vtag = research("r\d{4}",fi)
     vtag = vtag.group(0)
@@ -62,12 +77,18 @@ def parseMultiDays(md):
     if not "days, " in md: return md
     days, rest = md.split("days, ")
     hrs, mins, secs = rest.split(":")
-    if int(hrs) > 12: SLURM_PARTITION="parallel"
+    if int(hrs) > 12: 
+        assert centosDetect() == 'centos7', "Long jobs only possible on CentOS7"
+        SLURM_PARTITION="parallel-EL7" 
+        
     out = "%i:%02i:%02i"%(int(hrs)+24.*int(days), int(mins), int(secs))
     return out
 
 def main(cfg):
+    runSystem = centosDetect()
     global SLURM_PARTITION
+    if runSystem == 'centos7':
+        SLURM_PARTITION = 'mono-shared-EL7'
     time_per_job = cfg.get("time_per_job",3600.)
     if ":" in str(time_per_job):
         now = datetime(day=1,month=1,year=1900,hour=0,minute=0,second=0)
@@ -82,7 +103,7 @@ def main(cfg):
     #print "* DEBUG * STIME: ",environ.get("STIME")
     #raise Exception
     environ["SMEM"] =cfg.get("mem_per_job","2G")
-    environ["SWPATH"]=cfg.get("DMPSWSYS","/cvmfs/dampe.cern.ch/rhel6-64/opt/releases/trunk")
+    environ["SWPATH"]=cfg.get("DMPSWSYS","/cvmfs/dampe.cern.ch/{}/opt/releases/trunk".format(runSystem))
     g_maxfiles = int(cfg.get("files_per_job",10))
 
     ncycles = 1
@@ -95,6 +116,7 @@ def main(cfg):
     wrapper=opjoin(slurm_exec_dir,"submit_slurm.sh")
 
     environ["SCRATCH"]=cfg.get("scratch_dir","${HOME}/scratch")
+    environ["DAMPE_DY2COMPRESS"]=str(cfg.get("compress","True"))
 
     ### LOOP OVER CYCLES ####
     for i in xrange(ncycles):
