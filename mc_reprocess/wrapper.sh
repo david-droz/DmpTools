@@ -10,7 +10,20 @@ echo "WORKDIR: ${WORKDIR}"
 echo "LOG LEVEL: ${DAMPE_LOGLEVEL}"
 echo "start time: $(date)"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-source /cvmfs/dampe.cern.ch/rhel6-64/etc/setup.sh
+if [ ! -f /etc/centos-release ]
+then
+	echo "Sourcing SL6"
+	source /cvmfs/dampe.cern.ch/rhel6-64/etc/setup.sh
+else
+	if grep -q "release 7." /etc/centos-release
+	then
+		echo "Sourcing CentOS7"
+		source /cvmfs/dampe.cern.ch/centos7/etc/setup.sh
+	else
+		echo "Sourcing SL6"
+		source /cvmfs/dampe.cern.ch/rhel6-64/etc/setup.sh
+	fi
+fi
 cd ${SWPATH}
 source bin/thisdmpsw.sh
 WORK_DIR=$(mktemp -d -p ${SCRATCH})
