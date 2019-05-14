@@ -31,7 +31,7 @@ def centosDetect():
 def mc2reco(fi,version="v5r4p0",newpath=""):
     """ converts allGamma-vXrYpZ_100GeV_10TeV-p2.noOrb.740485.mc.root to allGamma-v5r4p0_100GeV_10TeV-p2.noOrb.740485.reco.root"""
     #print '*** DEBUG: file: ',fi
-    vtag = research("v\dr\dp\d{1,2}[a-z]",fi)
+    vtag = research("v\dr\dp\d{1,2}[a-z]?",fi)
     if vtag is None:
         vtag = research("r\d{4}",fi)
     vtag = vtag.group(0)
