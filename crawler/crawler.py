@@ -104,6 +104,9 @@ def main(infile, debug=False):
             if res is None:
                 error_code = 1001
                 raise Exception("missing branch %s",b)
+            elif not res.GetEntries() > 0 :
+				error_code = 1001
+				raise Exception("empty branch %s",b)
         return True
 
     def verifyEnergyBounds(fname,emin,emax):
