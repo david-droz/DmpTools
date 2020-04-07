@@ -33,21 +33,21 @@ def json_load_byteified(file_handle):
 	'''
 	Crawler output is unicode. Change to UTF-8 for better handling
 	'''
-	def _byteify(data, ignore_dicts = False):
-		if isinstance(data, unicode):
-			return data.encode('utf-8')
-		if isinstance(data, list):
-			return [ _byteify(item, ignore_dicts=True) for item in data ]
-		if isinstance(data, dict) and not ignore_dicts:
-			return {
-				_byteify(key, ignore_dicts=True): _byteify(value, ignore_dicts=True)
-				for key, value in data.iteritems()
-				}
-		return data
 	return _byteify(
 		json.load(file_handle, object_hook=_byteify),
 		ignore_dicts=True
 	)
+def _byteify(data, ignore_dicts = False):
+	if isinstance(data, unicode):
+		return data.encode('utf-8')
+	if isinstance(data, list):
+		return [ _byteify(item, ignore_dicts=True) for item in data ]
+	if isinstance(data, dict) and not ignore_dicts:
+		return {
+			_byteify(key, ignore_dicts=True): _byteify(value, ignore_dicts=True)
+			for key, value in data.iteritems()
+			}
+	return data
 
 def identifyEnergyRange(filenamedir):
 	'''
@@ -86,9 +86,15 @@ def ana(filename):
 	with open(filename,'r') as f:	
 		diclist = json_load_byteified(f)
 	
-	eMin,eMax = identifyEnergyRange(diclist[0]['lfn'])
+	try:
+		eMin,eMax = identifyEnergyRange(diclist[0]['lfn'])
+	except:
+		eMin = 0
+		eMax = 0
 	emins = []
 	emaxs = []
+	
+	er_str = []
 	
 	# Explicitly have one list per possible error code - at the end I want empty files for error codes that did not appear (instead of having no file at all)
 	fichiers = {'0':[],'1001':[],'1002':[],'1003':[],'1004':[],'2000':[],'1005':[],'3000':[]}
@@ -100,6 +106,7 @@ def ana(filename):
 		if iteration['error_code'] == 0:
 			emins.append(iteration['emin'])
 			emaxs.append(iteration['emax'])
+			er_str.append( str(iteration['emin']) + '-' + str(iteration['emax'])  )
 			goodDicList.append(iteration)
 			
 	with open(filename.replace('.json','.good.json'),'w') as f:
@@ -124,6 +131,8 @@ def ana(filename):
 		with open(outstring,'w') as thefile:
 			for item in fichiers[k]:
 				thefile.write("%s\n" % item)
+				
+	###			
 	if badEnergies:
 		if not os.path.isdir(dirname+'/energies'): os.mkdir(dirname+'/energies')
 		
@@ -133,13 +142,13 @@ def ana(filename):
 		for iteration in diclist:
 			if iteration['error_code'] == 0:
 				
-				if iteration['emin'] > 1e+6: key1 = str(iteration['emin']/1e+6)+'TeV'
-				elif iteration['emin'] > 1e+3: key1 = str(iteration['emin']/1e+3)+'GeV'
-				else: key1 = str(iteration['emin'])+'MeV'
+				if iteration['emin'] > 1e+6: key1 = str(int(iteration['emin']/1e+6))+'TeV'
+				elif iteration['emin'] > 1e+3: key1 = str(int(iteration['emin']/1e+3))+'GeV'
+				else: key1 = str(int(iteration['emin']))+'MeV'
 				
-				if iteration['emax'] > 1e+6: key2 = str(iteration['emax']/1e+6)+'TeV'
-				elif iteration['emax'] > 1e+3: key2 = str(iteration['emax']/1e+3)+'GeV'
-				else: key2 = str(iteration['emax'])+'MeV'
+				if iteration['emax'] > 1e+6: key2 = str(int(iteration['emax']/1e+6))+'TeV'
+				elif iteration['emax'] > 1e+3: key2 = str(int(iteration['emax']/1e+3))+'GeV'
+				else: key2 = str(int(iteration['emax']))+'MeV'
 				
 				key = key1 + '_' + key2
 				try: 
@@ -153,6 +162,8 @@ def ana(filename):
 			with open(outstring,'w') as thefile:
 				for item in dicEnergy[key]:
 					thefile.write("%s\n" % item)
+	
+	
 	
 
 if __name__ == '__main__':

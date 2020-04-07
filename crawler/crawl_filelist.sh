@@ -10,12 +10,24 @@ badfile_tmp=${ofile/".json"/".bad"}
 
 rm -f ${errfile} ${badfile_tmp}
 
-source /cvmfs/dampe.cern.ch/rhel6-64/etc/setup.sh
+if [ "${HOSTNAME}" = "gridvm7.unige.ch" ]
+then
+	source /cvmfs/dampe.cern.ch/centos7/etc/setup.sh
+	echo "Using centos7"
+elif grep -q "CentOS" /etc/redhat-release
+then
+	source /cvmfs/dampe.cern.ch/centos7/etc/setup.sh
+	echo "Using centos7"
+else
+	source /cvmfs/dampe.cern.ch/rhel6-64/etc/setup.sh
+	echo "Using SL6"
+fi
 dampe_init ${release}
 
 for f in $(cat ${infile});
 do
-    python ${CRAWLER_ROOT}/crawler.py ${f} -o ${ofile} 2> ${errfile}
+    #python ${CRAWLER_ROOT}/crawler.py ${f} -o ${ofile} 2> ${errfile}
+    python ${CRAWLER_ROOT}/crawler.py ${f} -o ${ofile}
     RC1=$?
 done
 
