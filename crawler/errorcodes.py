@@ -19,11 +19,12 @@ Error codes:
 1002 : House-Keeping tree is missing in flight data
 1003 : Bad particle
 1004 : Zero events - file is readable
-2000 : Cannot access file / cannot read file
 1005 : Events outside of energy range
+2000 : Cannot access file / cannot read file
 3000 : C++ internal error
 
 '''
+from __future__ import division, absolute_import, print_function
 
 import json
 import os
@@ -33,27 +34,30 @@ def json_load_byteified(file_handle):
 	'''
 	Crawler output is unicode. Change to UTF-8 for better handling
 	'''
+
+	def _byteify(data, ignore_dicts = False):
+		if isinstance(data, unicode):
+			return data.encode('utf-8')
+		if isinstance(data, list):
+			return [ _byteify(item, ignore_dicts=True) for item in data ]
+		if isinstance(data, dict) and not ignore_dicts:
+			return {
+				_byteify(key, ignore_dicts=True): _byteify(value, ignore_dicts=True)
+				for key, value in data.iteritems()
+				}
+		return data
 	return _byteify(
 		json.load(file_handle, object_hook=_byteify),
 		ignore_dicts=True
 	)
-def _byteify(data, ignore_dicts = False):
-	if isinstance(data, unicode):
-		return data.encode('utf-8')
-	if isinstance(data, list):
-		return [ _byteify(item, ignore_dicts=True) for item in data ]
-	if isinstance(data, dict) and not ignore_dicts:
-		return {
-			_byteify(key, ignore_dicts=True): _byteify(value, ignore_dicts=True)
-			for key, value in data.iteritems()
-			}
-	return data
 
 def identifyEnergyRange(filenamedir):
 	'''
 	Identifies energy range by looking at the name of the file (not at the event header)
 	
-	String manipulations are evil
+	From "allHe4-v6r0p10_10TeV_100TeV-FTFP.noOrb.649644.mc.root" returns: (10000000.0, 100000000.0)
+	
+	Whole lot of bad string manipulations
 	'''
 	
 	filename = os.path.basename(filenamedir)
@@ -88,7 +92,8 @@ def ana(filename):
 	
 	try:
 		eMin,eMax = identifyEnergyRange(diclist[0]['lfn'])
-	except:
+	except Exception as e:
+		print("Error when identifying energy range: ", e)
 		eMin = 0
 		eMax = 0
 	emins = []
@@ -113,11 +118,12 @@ def ana(filename):
 		json.dump(goodDicList,f)
 			
 	if len(set(emins)) > 1 or len(set(emaxs)) > 1:		# Multiple energy ranges found
-		print "Found multiple energy ranges! File: ", filename.replace('.json','')
+		print("Found multiple energy ranges! File: ", filename.replace('.json',''))
 		badEnergies = True
 	elif eMin not in emins or eMax not in emaxs: 		# Wrong energy range
+		print("Found bad energy range! File: ", filename.replace('.json','') )
 		badEnergies = True
-		print "Found bad energy range! File: ", filename.replace('.json','')
+		
 	else:
 		badEnergies = False
 	
