@@ -15,7 +15,7 @@ infile_base="${infile%.*}"  # Remove file extension
 
 ofile=${infile_base}.json
 errfile=${infile_base}.err
-badfile_tmp=${ofile/".json"/".bad"}
+badfile_tmp=${infile_base}.bad
 
 rm -v ${errfile} ${badfile_tmp}
 
